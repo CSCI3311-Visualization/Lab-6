@@ -48,16 +48,8 @@ function AreaChart(container) {
   const listeners = { brushed: null };
 
   function brushed(event) {
-
-    const left = event.selection[0] - margin.left;
-    console.log('left', left);
-
     if (event.selection) {
-      //   listeners['brushed'](event.selection.map(xScale.invert));
-      listeners['brushed']([
-        xScale.invert(left),
-        xScale.invert(event.selection[1]),
-      ]);
+      listeners['brushed'](event.selection.map(xScale.invert));
     }
   }
 

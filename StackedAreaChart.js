@@ -40,6 +40,14 @@ function StackedAreaChart(container) {
   let data;
   let selected = null;
 
+  // CLIP PATH
+  group
+    .append('clipPath')
+    .attr('id', 'clip')
+    .append('rect')
+    .attr('width', width)
+    .attr('height', height);
+
   function update(_data) {
     data = _data;
     const keys = selected ? [selected] : data.columns.slice(1);
@@ -72,6 +80,7 @@ function StackedAreaChart(container) {
     const areas = group.selectAll('.area').data(stackedData, (d) => d.key);
 
     areas
+      .style('clip-path', 'url(#clip)')
       .enter()
       .append('path')
       .attr('class', 'area')
