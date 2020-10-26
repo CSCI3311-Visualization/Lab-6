@@ -33,6 +33,46 @@ function AreaChart(container) {
   const yAxis = d3.axisLeft().scale(yScale).ticks(4);
   let yAxisGroup = group.append('g').attr('class', 'y-axis axis');
 
+  // BRUSH
+  const brush = d3
+    .brushX()
+    .extent([
+      [0, 0],
+      [width, height],
+    ])
+    .on('brush', brushed)
+    .on('end', brushended);
+
+  group.append('g').attr('class', 'brush').call(brush);
+
+  const listeners = { brushed: null };
+
+  function brushed(event) {
+
+    const left = event.selection[0] - margin.left;
+    console.log('left', left);
+
+    if (event.selection) {
+      //   listeners['brushed'](event.selection.map(xScale.invert));
+      listeners['brushed']([
+        xScale.invert(left),
+        xScale.invert(event.selection[1]),
+      ]);
+    }
+  }
+
+  function brushended(event) {
+    if (!event.selection) {
+      if (listeners['brushed']) {
+        listeners['brushed']([xScale.invert(0), xScale.invert(width)]);
+      }
+    }
+  }
+
+  function on(eventname, callback) {
+    listeners[eventname] = callback;
+  }
+
   function update(data) {
     // update scales, encodings, axes (use the total count)
     // 1. Update the domains of the scales using the data passed to `update`
@@ -54,6 +94,7 @@ function AreaChart(container) {
 
   return {
     update,
+    on,
   }; // ES6 shorthand for "update": update
 }
 

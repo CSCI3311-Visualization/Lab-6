@@ -1,5 +1,5 @@
 import AreaChart from './AreaChart.js';
-import StackedAreaChart from './StackedAreaChart.js'; 
+import StackedAreaChart from './StackedAreaChart.js';
 
 d3.csv('unemployment.csv', d3.autoType).then((data) => {
   const stackChart = StackedAreaChart('.stack-container');
@@ -20,6 +20,9 @@ d3.csv('unemployment.csv', d3.autoType).then((data) => {
 
   const areaChart = AreaChart('.chart-container');
   areaChart.update(data);
+  areaChart.on('brushed', (range) => {
+    stackChart.filterByDate(range); // coordinating with stackedAreaChart
+  });
 
   console.log('THE END');
 });

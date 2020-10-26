@@ -36,8 +36,13 @@ function StackedAreaChart(container) {
     .attr('y', 30)
     .style('text-anchor', 'start');
 
-  function update(data) {
-    const keys = data.columns.slice(1);
+  let xDomain;
+  let data;
+  let selected = null;
+
+  function update(_data) {
+    data = _data;
+    const keys = selected ? [selected] : data.columns.slice(1);
 
     let stack = d3
       .stack()
@@ -49,15 +54,16 @@ function StackedAreaChart(container) {
 
     // update scales, encodings, axes (use the total count)
     // 1. Update the domains of the scales using the data passed to `update`
-    xScale.domain(d3.extent(data, (d) => d.date));
-    yScale.domain([0, d3.max(stackedData, (d) => d3.max(d, (d) => d[1]))]);
+
+    xScale.domain(xDomain ? xDomain : d3.extent(data, (d) => d.date));
+    yScale.domain([0, d3.max(stackedData, (d) => d3.max(d, (a) => a[1]))]);
     colorScale.domain(keys);
 
     // Update axes and axis title
     xAxisGroup.attr('transform', 'translate(0,' + height + ')').call(xAxis);
     yAxisGroup.call(yAxis);
 
-    const area = d3
+    let area = d3
       .area()
       .x((d) => xScale(d.data.date))
       .y0((d) => yScale(d[0]))
@@ -68,6 +74,8 @@ function StackedAreaChart(container) {
     areas
       .enter()
       .append('path')
+      .attr('class', 'area')
+      .attr('d', area)
       .merge(areas)
       .on('mouseover', (e, d, i) => {
         tooltip.text(d.key);
@@ -75,14 +83,28 @@ function StackedAreaChart(container) {
       .on('mouseout', (e, d, i) => {
         tooltip.text('');
       })
+      .on('click', (e, d) => {
+        if (selected === d.key) {
+          selected = null;
+        } else {
+          selected = d.key;
+        }
+        update(data);
+      })
       .attr('fill', (d) => colorScale(d.key))
       .attr('d', area);
 
     areas.exit().remove();
   }
 
+  function filterByDate(range) {
+    xDomain = range;
+    update(data);
+  }
+
   return {
     update,
+    filterByDate,
   };
 }
 
