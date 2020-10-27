@@ -112,12 +112,14 @@ export default function StackedAreaChart(container) {
     const areas = group.selectAll('.area').data(stackedData, (d) => d.key);
 
     areas
-      .attr('clip-path', 'url(#clip)')
       .enter()
       .append('path')
+      .style('clip-path', 'url(#clip)')
       .attr('class', 'area')
-      .attr('d', area)
       .merge(areas)
+      .attr('d', area)
+      .attr('fill', (d) => colorScale(d.key))
+      .attr('opacity', 0.7)
       .on('mouseover', (e, d) => {
         tooltip.text(d.key);
       })
@@ -131,10 +133,7 @@ export default function StackedAreaChart(container) {
           selected = d.key;
         }
         update(data);
-      })
-      .attr('fill', (d) => colorScale(d.key))
-      .attr('opacity', 0.7)
-      .attr('d', area);
+      });
 
     areas.exit().remove();
 

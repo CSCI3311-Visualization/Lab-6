@@ -33,6 +33,12 @@ export default function AreaChart(container) {
   const yAxis = d3.axisLeft().scale(yScale).ticks(4);
   let yAxisGroup = group.append('g').attr('class', 'y-axis axis');
 
+  const listeners = { brushed: null };
+
+  function on(eventname, callback) {
+    listeners[eventname] = callback;
+  }
+
   // BRUSH
   const brush = d3
     .brushX()
@@ -57,12 +63,6 @@ export default function AreaChart(container) {
         listeners['brushed']([xScale.invert(0), xScale.invert(width)]);
       }
     }
-  }
-
-  const listeners = { brushed: null };
-
-  function on(eventname, callback) {
-    listeners[eventname] = callback;
   }
 
   function setBrush(timeRange) {
@@ -95,4 +95,3 @@ export default function AreaChart(container) {
   };
   // ES6 shorthand for "update": update
 }
-
