@@ -1,4 +1,4 @@
-function AreaChart(container) {
+export default function AreaChart(container) {
   // selector for a chart container e.g., ".chart"
 
   // initialization
@@ -96,4 +96,3 @@ function AreaChart(container) {
   // ES6 shorthand for "update": update
 }
 
-export default AreaChart;

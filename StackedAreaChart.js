@@ -1,4 +1,4 @@
-function StackedAreaChart(container) {
+export default function StackedAreaChart(container) {
   // initialization
   // 1. Create a SVG with the margin convention
   const margin = { top: 20, right: 20, bottom: 20, left: 50 };
@@ -70,12 +70,14 @@ function StackedAreaChart(container) {
       .scaleExtent([1, 4])
       .on('zoom', zoomed)
   );
+
   d3.select('svg').on('dblclick.zoom', null);
 
   function zoomed({ transform }) {
     const copy = xScale.copy().domain(d3.extent(data, (d) => d.date));
     const rescaled = transform.rescaleX(copy);
     xDomain = rescaled.domain();
+
     update(data);
     if (listeners['zoomed']) {
       listeners['zoomed'](xDomain);
@@ -154,5 +156,3 @@ function StackedAreaChart(container) {
     on,
   };
 }
-
-export default StackedAreaChart;
