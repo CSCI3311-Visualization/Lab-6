@@ -1,7 +1,7 @@
 function StackedAreaChart(container) {
   // initialization
   // 1. Create a SVG with the margin convention
-  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+  const margin = { top: 20, right: 20, bottom: 20, left: 50 };
   const width = 650 - margin.left - margin.right;
   const height = 500 - margin.top - margin.bottom;
 
@@ -28,11 +28,12 @@ function StackedAreaChart(container) {
   const yAxis = d3.axisLeft().scale(yScale);
   let yAxisGroup = group.append('g').attr('class', 'y-axis axis');
 
-  // CREATE A CATEGORY LABEL
+  // Create a category label (tooltip)
   const tooltip = svg
     .append('text')
     .attr('class', 'tooltip')
-    .attr('x', 35)
+    .style('font-weight', 'bold')
+    .attr('x', 60)
     .attr('y', 30)
     .style('text-anchor', 'start');
 
@@ -40,7 +41,7 @@ function StackedAreaChart(container) {
   let data;
   let selected = null;
 
-  // CLIP PATH
+  // Clip Path
   group
     .append('clipPath')
     .attr('id', 'clip')
@@ -48,10 +49,45 @@ function StackedAreaChart(container) {
     .attr('width', width)
     .attr('height', height);
 
+  const listeners = { zoomed: null };
+
+  function on(eventname, callback) {
+    listeners[eventname] = callback;
+  }
+
+  // Zoom
+  const zoom = d3.zoom();
+  group.call(
+    zoom
+      .extent([
+        [0, 0],
+        [width, height],
+      ])
+      .translateExtent([
+        [0, -Infinity],
+        [width, Infinity],
+      ]) // we don't care the y-extent
+      .scaleExtent([1, 4])
+      .on('zoom', zoomed)
+  );
+  d3.select('svg').on('dblclick.zoom', null);
+
+  function zoomed({ transform }) {
+    const copy = xScale.copy().domain(d3.extent(data, (d) => d.date));
+    const rescaled = transform.rescaleX(copy);
+    xDomain = rescaled.domain();
+    update(data);
+    if (listeners['zoomed']) {
+      listeners['zoomed'](xDomain);
+    }
+  }
+
   function update(_data) {
+    // 1. Extract category names keys for stacking
     data = _data;
     const keys = selected ? [selected] : data.columns.slice(1);
 
+    // 2. Compute a stack from the data
     let stack = d3
       .stack()
       .keys(keys)
@@ -60,23 +96,19 @@ function StackedAreaChart(container) {
 
     let stackedData = stack(data);
 
-    // update scales, encodings, axes (use the total count)
-    // 1. Update the domains of the scales using the data passed to `update`
-
+    // 3. Update the domains of the scales
     xScale.domain(xDomain ? xDomain : d3.extent(data, (d) => d.date));
     yScale.domain([0, d3.max(stackedData, (d) => d3.max(d, (a) => a[1]))]);
     colorScale.domain(keys);
 
-    // Update axes and axis title
-    xAxisGroup.attr('transform', 'translate(0,' + height + ')').call(xAxis);
-    yAxisGroup.call(yAxis);
-
-    let area = d3
+    // 4. Create a area generator
+    const area = d3
       .area()
       .x((d) => xScale(d.data.date))
       .y0((d) => yScale(d[0]))
       .y1((d) => yScale(d[1]));
 
+    // 5. Create areas based on the stack
     const areas = group.selectAll('.area').data(stackedData, (d) => d.key);
 
     areas
@@ -86,10 +118,10 @@ function StackedAreaChart(container) {
       .attr('class', 'area')
       .attr('d', area)
       .merge(areas)
-      .on('mouseover', (e, d, i) => {
+      .on('mouseover', (e, d) => {
         tooltip.text(d.key);
       })
-      .on('mouseout', (e, d, i) => {
+      .on('mouseout', () => {
         tooltip.text('');
       })
       .on('click', (e, d) => {
@@ -101,9 +133,14 @@ function StackedAreaChart(container) {
         update(data);
       })
       .attr('fill', (d) => colorScale(d.key))
+      .attr('opacity', 0.7)
       .attr('d', area);
 
     areas.exit().remove();
+
+    // 6. Update axes
+    xAxisGroup.attr('transform', 'translate(0,' + height + ')').call(xAxis);
+    yAxisGroup.call(yAxis);
   }
 
   function filterByDate(range) {
@@ -114,6 +151,7 @@ function StackedAreaChart(container) {
   return {
     update,
     filterByDate,
+    on,
   };
 }
 

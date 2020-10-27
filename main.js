@@ -2,9 +2,6 @@ import AreaChart from './AreaChart.js';
 import StackedAreaChart from './StackedAreaChart.js';
 
 d3.csv('unemployment.csv', d3.autoType).then((data) => {
-  const stackChart = StackedAreaChart('.stack-container');
-  stackChart.update(data);
-
   // Compute the total unemployment count (e.g. total 5974)
   // which will be used for the bottom area chart
   const columns = data.columns;
@@ -20,9 +17,16 @@ d3.csv('unemployment.csv', d3.autoType).then((data) => {
 
   const areaChart = AreaChart('.chart-container');
   areaChart.update(data);
+
+  const stackChart = StackedAreaChart('.stack-container');
+  stackChart.update(data);
+
+  //Add Event listeners for brush and zoom
   areaChart.on('brushed', (range) => {
     stackChart.filterByDate(range); // coordinating with stackedAreaChart
   });
 
-  console.log('THE END');
+  stackChart.on('zoomed', (timeRange) => {
+    areaChart.setBrush(timeRange);
+  });
 });

@@ -3,7 +3,7 @@ function AreaChart(container) {
 
   // initialization
   // 1. Create a SVG with the margin convention
-  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+  const margin = { top: 20, right: 20, bottom: 20, left: 50 };
   const width = 650 - margin.left - margin.right;
   const height = 100 - margin.top - margin.bottom;
 
@@ -45,8 +45,6 @@ function AreaChart(container) {
 
   group.append('g').attr('class', 'brush').call(brush);
 
-  const listeners = { brushed: null };
-
   function brushed(event) {
     if (event.selection) {
       listeners['brushed'](event.selection.map(xScale.invert));
@@ -61,8 +59,14 @@ function AreaChart(container) {
     }
   }
 
+  const listeners = { brushed: null };
+
   function on(eventname, callback) {
     listeners[eventname] = callback;
+  }
+
+  function setBrush(timeRange) {
+    group.select('.brush').call(brush.move, timeRange.map(xScale));
   }
 
   function update(data) {
@@ -75,19 +79,21 @@ function AreaChart(container) {
     xAxisGroup.attr('transform', 'translate(0,' + height + ')').call(xAxis);
     yAxisGroup.call(yAxis);
 
-    let area = d3
+    const area = d3
       .area()
       .x((d) => xScale(d.date))
       .y1((d) => yScale(d.total))
       .y0(() => yScale.range()[0]);
 
-    d3.select('.line').datum(data).attr('d', area);
+    d3.select('.line').datum(data).attr('d', area).attr('fill', 'steelblue');
   }
 
   return {
     update,
     on,
-  }; // ES6 shorthand for "update": update
+    setBrush,
+  };
+  // ES6 shorthand for "update": update
 }
 
 export default AreaChart;
