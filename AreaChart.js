@@ -47,7 +47,7 @@ export default function AreaChart(container) {
       [width, height],
     ])
     .on('brush', brushed)
-    .on('end', brushended);
+    .on('end', brushEnded);
 
   group.append('g').attr('class', 'brush').call(brush);
 
@@ -57,7 +57,7 @@ export default function AreaChart(container) {
     }
   }
 
-  function brushended(event) {
+  function brushEnded(event) {
     if (!event.selection) {
       if (listeners['brushed']) {
         listeners['brushed']([xScale.invert(0), xScale.invert(width)]);
