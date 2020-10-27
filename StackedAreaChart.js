@@ -71,8 +71,6 @@ export default function StackedAreaChart(container) {
       .on('zoom', zoomed)
   );
 
-  d3.select('svg').on('dblclick.zoom', null);
-
   function zoomed({ transform }) {
     const copy = xScale.copy().domain(d3.extent(data, (d) => d.date));
     const rescaled = transform.rescaleX(copy);
@@ -114,7 +112,7 @@ export default function StackedAreaChart(container) {
     const areas = group.selectAll('.area').data(stackedData, (d) => d.key);
 
     areas
-      .style('clip-path', 'url(#clip)')
+      .attr('clip-path', 'url(#clip)')
       .enter()
       .append('path')
       .attr('class', 'area')
